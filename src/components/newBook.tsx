@@ -1,28 +1,37 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Dialog, DialogTitle, Transition, TransitionChild } from '@headlessui/react'
 import { Book } from '../model/Book'
+import { v4 as uuidv4 } from 'uuid';
+import { CustomBtnParams } from './customBtn';
 // import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
-function NewBook(promp: { handleClick: () => void, addNewBook: (newBook: Book) => void}) {
+function NewBook(promp: { handleClick: () => void, addNewBook: (newBook: Book) => void, data?: Book }) {
     // const [open, setOpen] = useState(true);
 
     const cancelButtonRef = useRef(null)
+    console.log("New Book en", promp?.data);
+    const [formData, setFormData] = useState<Book>(promp?.data ? promp.data : { id: uuidv4(), name: "", author: "", pages: "", read: false });
+    useEffect(() => { }, [formData.read])
 
-    const [formData, setFormData] = useState<Book>({ name: "", author: "", pages:0 });
-
-    function handleSubmit(event: any) {
-        console.log("New Book",formData);
-        event.preventDefault();
+    function handleSubmit() {
+        console.log("New Book", formData);
+        // event.preventDefault();
         promp.addNewBook(formData);
         promp.handleClick();
     }
 
     function handleChange(event: any) {
-        console.log("EVENT", event)
-        const { name, value } = event.target;
-        setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+        // console.log("EVENT", event)
+        // const { name, value } = event.target;
+        // setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+        fillForm(event.target);
     }
 
+    // function fillForm(name: string, value: any) {
+    function fillForm(data: any) {
+        const { name, value } = data;
+        setFormData((prevFormData) => ({ ...prevFormData, [name]: value }));
+    }
 
     return (
         <Transition.Root show={true} as={Fragment}>
@@ -81,11 +90,19 @@ function NewBook(promp: { handleClick: () => void, addNewBook: (newBook: Book) =
                                                             </label>
                                                             <input name="author" type="text" className="w-full mt-1 px-2 rounded-md border-1" placeholder="e.g J. K. Rowling" value={formData?.author} onChange={handleChange} />
                                                         </div>
-                                                        <div className='m-2'>
-                                                            <label htmlFor="pages" className="block text-sm font-medium leading-6 text-gray-900">
-                                                                Pages
-                                                            </label>
-                                                            <input name="pages" type="number" className="w-full mt-1 px-2 rounded-md border-1" placeholder="90" value={formData?.pages} onChange={handleChange} />
+                                                        <div className='m-2 flex flex-row gap-2'>
+                                                            <div>
+                                                                <label htmlFor="pages" className="flex flex-col text-sm font-medium leading-6 text-gray-900">
+                                                                    Pages
+                                                                </label>
+                                                                <input name="pages" type="number" className="mt-1 px-2 rounded-md border-1" placeholder="90" value={formData?.pages} onChange={handleChange} min={1} />
+                                                            </div>
+                                                            <div>
+                                                                <label htmlFor="read" className="flex flex-col text-sm font-medium leading-6 text-gray-900">
+                                                                    Status
+                                                                </label>
+                                                                <CustomBtnParams id="read" handleClick={fillForm} label={formData.read ? "Read" : "Pending"} class={`mx-2 text-xl ${formData.read ? 'bg-lime-200' : 'bg-sky-200'}`} data={{ name: "read", value: !formData.read }} />
+                                                            </div>
                                                         </div>
                                                         {/* <input className="m-2" placeholder="Pages" /> */}
                                                     </div>
@@ -106,7 +123,7 @@ function NewBook(promp: { handleClick: () => void, addNewBook: (newBook: Book) =
                                         // () => promp.handleClick()
                                     } */
                                     >
-                                        Add Book
+                                        {promp.data ? "Update" : "Add Book"}
                                     </button>
                                     <button
                                         type="button"
